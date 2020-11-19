@@ -1,47 +1,55 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package entidadesJdbc;
+/**
+ Copyright (C) 2020 Carlos Andrés Sierra (casierrav)
+ This file is part of ArtCuratorJDBCProject <https://github.com/EngAndres/ArtCuratorJDBC>.
 
+ ArtCuratorJDBC is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ TheSocitosNetworkProject is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with ArtCuratorJDBCProject.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+package repositories;
+
+import artcurator.ConnectionJDBC;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  *
- * @author Carlos A. Sierra
+ * @author casierrav
  */
 public class ArtPiece {
     
     private Connection conn;
     
-    private String dbURL = "jdbc:mysql://localhost:3306/museo?serverTimezone=UTC";
-    private String username = "root";
-    private String password = "@mysql1987";
-    
+    /**
+     * Constructor of the class
+     */
     public ArtPiece(){
-        try {
-            this.conn = DriverManager.getConnection(dbURL,username, password);
-        } catch (SQLException ex) {
-            Logger.getLogger(ArtPiece.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        this.conn = ConnectionJDBC.getConnection();
     }
     
+    
     /**
-     * 
+     * This method is used to insert a new art piece into the repository.
      * @param id
      * @param name
      * @param type
      * @param cost
      * @param exp_id
-     * @return 
+     * @return transaction status
      */
     public String insertPiece(int id, String name, String type, int cost, int exp_id){
         try {
@@ -67,13 +75,14 @@ public class ArtPiece {
     
     
     /**
-     * 
-     * @return 
+     * This method is used to get all the art pieces saved in the repository.
+     * @return  transaction status 
      */
     public String searchAllPieces(){
         try {
             String sql = "SELECT obra.obr_id, obra.obr_nombre, obra.obr_tipo, "
-                    + "obra.obr_costo, exposicion.exp_nombre FROM obra JOIN exposicion WHERE obra.exp_id = exposicion.exp_id;";
+                    + "obra.obr_costo, exposicion.exp_nombre FROM obra JOIN exposicion "
+                    + "WHERE obra.exp_id = exposicion.exp_id;";
             Statement statement = conn.createStatement();
             ResultSet result = statement.executeQuery(sql);
             int count = 0;
@@ -98,9 +107,9 @@ public class ArtPiece {
     }
     
     /**
-     * 
+     * This method is used to get an art piece from the repository based on its name.
      * @param name
-     * @return 
+     * @return transaction status
      */
     public String searchPieceByName(String name){
         try {
@@ -108,8 +117,8 @@ public class ArtPiece {
                     + "obra.obr_costo, exposicion.exp_nombre FROM obra JOIN exposicion"
                     + " WHERE obra.exp_id = exposicion.exp_id AND obra.obr_nombre=?;";
             PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1,name);
-            ResultSet result = statement.executeQuery(sql);
+            statement.setString(1, name);
+            ResultSet result = statement.executeQuery();
             int count = 0;
         
             while (result.next()){
@@ -133,14 +142,17 @@ public class ArtPiece {
     
     
     /**
-     * 
-     * @return 
+     * This method is used to get an art piece from the repository filtered by exposition.
+     * @param exp_id
+     * @return  transaction status
      */
-    public String searchPieceByExposition(){
+    public String searchPieceByExposition(int exp_id){
         try {
-            String sql = "SELECT obra.obr_id, obra.obr_nombre, obra.obr_tipo, obra.obr_costo, exposicion.exp_nombre FROM obra JOIN exposicion WHERE obra.exp_id = exposicion.exp_id;";
-            Statement statement = conn.createStatement();
-            ResultSet result = statement.executeQuery(sql);
+            String sql = "SELECT obra.obr_id, obra.obr_nombre, obra.obr_tipo, obra.obr_costo, exposicion.exp_nombre "
+                    + "FROM obra JOIN exposicion WHERE obra.exp_id = exposicion.exp_id AND obra.exp_id=?;";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, exp_id);
+            ResultSet result = statement.executeQuery();
             int count = 0;
         
             while (result.next()){
@@ -164,10 +176,10 @@ public class ArtPiece {
     
     
     /**
-     * 
+     * This method is used to the cost of an art piece in the repository.
      * @param piece_id
      * @param cost
-     * @return 
+     * @return  transaction status
      */
     public String updatePiece(int piece_id, int cost){
         try {
@@ -190,9 +202,9 @@ public class ArtPiece {
     
     
     /**
-     * 
+     * This method is used to remove an art piece of the repository.
      * @param piece_id
-     * @return 
+     * @return transaction status
      */
     public String deletePiece(int piece_id){
         try {
